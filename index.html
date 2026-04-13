@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Juggs McNuggs</title>
+<link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink: #FF007F;
+    --pink-glow: rgba(255,0,127,0.35);
+    --pink-dim: rgba(255,0,127,0.12);
+    --pink-soft: rgba(255,0,127,0.06);
+    --orange: #FF6A00;
+    --orange-glow: rgba(255,106,0,0.35);
+    --orange-dim: rgba(255,106,0,0.12);
+    --orange-soft: rgba(255,106,0,0.06);
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --white: #f2f0f0;
+    --light: #b8b5b5;
+    --gray: #706d6d;
+    --accent: var(--pink);
+    --accent-glow: var(--pink-glow);
+    --accent-dim: var(--pink-dim);
+    --accent-soft: var(--pink-soft);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background:var(--bg);
+    color:var(--white);
+    font-family:'Poppins',sans-serif;
+    overflow:hidden;
+    height:100vh; width:100vw;
+  }
+
+  canvas#particles {
+    position:fixed; top:0; left:0;
+    width:100%; height:100%;
+    z-index:0; pointer-events:none;
+  }
+
+  /* NAV */
+  nav {
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0.8rem 2.5rem;
+    background:rgba(10,10,15,0.85);
+    backdrop-filter:blur(20px);
+    border-bottom:1px solid var(--pink-dim);
+    opacity:0; transform:translateY(-10px);
+    animation:navIn 0.4s ease 0.3s forwards;
+  }
+  @keyframes navIn { to { opacity:1; transform:translateY(0); } }
+
+  .nav-brand {
+    font-family:'Kaushan Script',cursive;
+    font-size:1.3rem; color:var(--pink);
+    cursor:pointer; transition:all 0.3s;
+  }
+  .nav-brand:hover { text-shadow:0 0 20px var(--pink-glow); }
+
+  .nav-links { display:flex; gap:0.2rem; flex-wrap:wrap; }
+
+  .nav-link {
+    font-size:0.8rem; font-weight:500;
+    color:var(--gray); background:none; border:none;
+    cursor:pointer; padding:0.4rem 0.8rem;
+    border-radius:20px; transition:all 0.3s;
+    font-family:'Poppins',sans-serif;
+  }
+  .nav-link:hover { color:var(--light); background:rgba(255,255,255,0.04); }
+  .nav-link.active { color:var(--pink); background:var(--pink-soft); }
+
+  /* PAGES */
+  .page-container { position:fixed; top:0; left:0; width:100%; height:100%; z-index:1; }
+
+  .page {
+    position:absolute; top:0; left:0;
+    width:100%; height:100%;
+    display:flex; flex-direction:column;
+    padding:3.5rem 2.5rem 0;
+    opacity:0; pointer-events:none;
+    transition:opacity 0.4s ease, transform 0.4s ease;
+    transform:translateY(10px);
+    overflow:hidden;
+  }
+  .page.active { opacity:1; pointer-events:all; transform:translateY(0); }
+
+  /* UNIFIED LAYOUT - same for every page */
+  .page-wrap {
+    flex:1;
+    display:flex; align-items:center; justify-content:center;
+    gap:4rem; max-width:1100px; margin:0 auto; width:100%;
+  }
+
+  .page-left { flex:1; }
+
+  .page-title {
+    font-family:'Kaushan Script',cursive;
+    font-size:3.2rem; line-height:1.15;
+    color:var(--accent);
+    text-shadow:0 0 30px var(--accent-glow);
+  }
+
+  .page-subtitle {
+    font-size:0.85rem; font-weight:400;
+    color:var(--gray); margin-top:0.2rem; margin-bottom:1rem;
+  }
+
+  .page-quote {
+    font-family:'Kaushan Script',cursive;
+    font-size:1rem; color:var(--accent);
+    opacity:0.8; margin-bottom:0.5rem;
+  }
+
+  .page-body {
+    font-size:0.85rem; line-height:1.85;
+    color:var(--light); font-weight:300;
+    max-width:500px;
+  }
+  .hl { color:var(--accent); font-weight:500; }
+
+  .page-right {
+    flex:0 0 300px;
+    display:flex; flex-direction:column; gap:0.75rem;
+    position:relative;
+  }
+
+  .img-frame {
+    border-radius:18px; overflow:hidden;
+    background:var(--surface);
+    border:2px solid var(--accent-dim);
+    box-shadow:0 6px 35px rgba(0,0,0,0.4), 0 0 25px var(--accent-soft);
+    transition:all 0.3s ease;
+  }
+  .img-frame:hover {
+    transform:translateY(-3px) rotate(-0.5deg);
+    box-shadow:0 8px 30px var(--accent-glow);
+    border-color:var(--accent);
+  }
+  .img-frame:nth-child(2):hover { transform:translateY(-3px) rotate(0.5deg); }
+
+  .img-frame.single { height:400px; }
+  .img-frame.double { height:190px; }
+
+  .img-frame img { width:100%; height:100%; object-fit:cover; object-position:top; }
+  .img-frame .ph {
+    width:100%; height:100%;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--gray); font-size:0.75rem; font-weight:300;
+  }
+
+  .img-glow {
+    position:absolute; bottom:-30px; left:50%; transform:translateX(-50%);
+    width:200px; height:60px;
+    background:radial-gradient(ellipse,var(--accent-glow),transparent);
+    filter:blur(30px); opacity:0.3;
+    pointer-events:none;
+  }
+
+  /* STAMP */
+  .stamp {
+    text-align:center;
+    padding:0.6rem 0;
+    font-size:0.65rem; font-weight:300;
+    color:var(--gray); letter-spacing:0.5px;
+  }
+  .stamp span { color:var(--accent); font-weight:400; }
+
+  /* BTS - no images, centered */
+  .bts-wrap {
+    flex:1;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    max-width:650px; margin:0 auto; width:100%;
+  }
+
+  .bts-wrap .page-title { text-align:center; }
+  .bts-wrap .page-quote { text-align:center; }
+  .bts-wrap .page-subtitle { text-align:center; }
+
+  .bts-wrap .page-body {
+    max-width:100%;
+    background:var(--surface);
+    border-radius:14px;
+    padding:1.5rem 2rem;
+    border:1px solid rgba(255,255,255,0.04);
+  }
+
+  /* BLACKOUT */
+  #page-blackout {
+    --accent:var(--orange);
+    --accent-glow:var(--orange-glow);
+    --accent-dim:var(--orange-dim);
+    --accent-soft:var(--orange-soft);
+  }
+  #page-blackout .nav-link.active { color:var(--orange); background:var(--orange-soft); }
+
+  /* RESPONSIVE */
+  @media (max-width:850px) {
+    nav { padding:0.6rem 1rem; }
+    .nav-brand { font-size:1rem; }
+    .nav-link { font-size:0.7rem; padding:0.3rem 0.5rem; }
+    .page { padding:3.2rem 1.2rem 0; }
+    .page-wrap { flex-direction:column; text-align:center; gap:1.5rem; }
+    .page-left { order:2; }
+    .page-right { order:1; flex:0 0 auto; flex-direction:row; width:100%; gap:0.5rem; }
+    .page-right .img-frame.single { height:200px; }
+    .page-right .img-frame.double { height:140px; flex:1; }
+    .page-title { font-size:2.2rem; }
+    .page-body { max-width:100%; font-size:0.82rem; }
+    .bts-wrap .page-body { padding:1rem 1.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+
+<nav>
+  <div class="nav-brand" onclick="showPage('home')">Juggs McNuggs</div>
+  <div class="nav-links">
+    <button class="nav-link active" data-page="home" onclick="showPage('home')">Home</button>
+    <button class="nav-link" data-page="casino" onclick="showPage('casino')">Casino</button>
+    <button class="nav-link" data-page="vv" onclick="showPage('vv')">Vanilla Venues</button>
+    <button class="nav-link" data-page="ghosts" onclick="showPage('ghosts')">Ghosts</button>
+    <button class="nav-link" data-page="blackout" onclick="showPage('blackout')">Blackout</button>
+    <button class="nav-link" data-page="events" onclick="showPage('events')">Events</button>
+    <button class="nav-link" data-page="bts" onclick="showPage('bts')">BTS</button>
+  </div>
+</nav>
+
+<div class="page-container">
+
+  <!-- HOME -->
+  <div class="page active" id="page-home">
+    <div class="page-wrap">
+      <div class="page-left">
+        <div class="page-title" style="font-size:3.8rem;">Juggs McNuggs</div>
+        <div class="page-subtitle">what up gangster.</div>
+        <p class="page-body">
+          If you've been around Highlife for more than five minutes you've probably seen me somewhere. I have a habit of ending up involved in things.
+          <br><br>
+          I'm one of the Casino Directors at the <span class="hl">Diamond</span>, a supervisor over at <span class="hl">Vanilla Venues</span>, part of the <span class="hl">Events Team</span>, and a server moderator. I don't know how I ended up doing all of it but here we are.
+          <br><br>
+          On the side I like to build random things for fun. Trackers, websites, tools, whatever catches my brain that day. Most of it just helps me do my own job easier but sometimes other people find it useful too.
+        </p>
+      </div>
+      <div class="page-right">
+        <div class="img-frame single">
+          <img src="images/main.png" alt="Juggs McNuggs" onerror="this.outerHTML='<div class=ph>main.png</div>'">
+        </div>
+        <div class="img-glow"></div>
+      </div>
+    </div>
+    <div class="stamp">Created by <span>JuggsMcNuggs</span>. Built with her A.I. <span>Levi</span>.</div>
+  </div>
+
+  <!-- CASINO -->
+  <div class="page" id="page-casino">
+    <div class="page-wrap">
+      <div class="page-left">
+        <div class="page-quote">Thank you for the donation!</div>
+        <div class="page-title">The Diamond</div>
+        <div class="page-subtitle">Casino Director</div>
+        <p class="page-body">
+          The Diamond Casino and Resort is home. I'm one of the Casino Directors so I've got my hands in a little bit of everything. I train new staff, run interviews, deal cards, host events, run the floor, handle security, and bully people into taking off their goggles. That last one is a full time job by itself.
+          <br><br>
+          I also built some tools to help me keep everything organized. A staff tracker for attendance and training records and an interactive training site where new dealers can practice table games before they deal a real hand. They come in handy especially when the city decides to go down in the middle of a training session.
+          <br><br>
+          It's a lot but I like it here. The Diamond is where I spend most of my time.
+        </p>
+      </div>
+      <div class="page-right">
+        <div class="img-frame double">
+          <img src="images/casino1.png" alt="Casino" onerror="this.outerHTML='<div class=ph>casino1.png</div>'">
+        </div>
+        <div class="img-frame double">
+          <img src="images/casino2.png" alt="Casino" onerror="this.outerHTML='<div class=ph>casino2.png</div>'">
+        </div>
+        <div class="img-glow"></div>
+      </div>
+    </div>
+    <div class="stamp">Created by <span>JuggsMcNuggs</span>. Built with her A.I. <span>Levi</span>.</div>
+  </div>
+
+  <!-- VANILLA VENUES -->
+  <div class="page" id="page-vv">
+    <div class="page-wrap">
+      <div class="page-left">
+        <div class="page-quote">Vitamin D is important for big strong bones!</div>
+        <div class="page-title">Vanilla Venues</div>
+        <div class="page-subtitle">Supervisor / Dancer / Security / DJ Milk Maiden</div>
+        <p class="page-body">
+          Vanilla Venues is where I get to be goofy. I'm a supervisor but I'm also a dancer, security, and most importantly DJ Milk Maiden. I hand out milk. That's the bit. Don't ask where it comes from just take the glass and say thank you.
+          <br><br>
+          I'll shave my head mid shift if its for a bit. I don't blink. If its funny I'm doing it. This is my place to let loose and not take anything seriously. The Diamond is business, VV is chaos.
+        </p>
+      </div>
+      <div class="page-right">
+        <div class="img-frame double">
+          <img src="images/vv1.png" alt="VV" onerror="this.outerHTML='<div class=ph>vv1.png</div>'">
+        </div>
+        <div class="img-frame double">
+          <img src="images/vv2.png" alt="VV" onerror="this.outerHTML='<div class=ph>vv2.png</div>'">
+        </div>
+        <div class="img-glow"></div>
+      </div>
+    </div>
+    <div class="stamp">Created by <span>JuggsMcNuggs</span>. Built with her A.I. <span>Levi</span>.</div>
+  </div>
+
+  <!-- GHOSTS -->
+  <div class="page" id="page-ghosts">
+    <div class="page-wrap">
+      <div class="page-left">
+        <div class="page-quote">I'm gonna go home and finger my fanny.</div>
+        <div class="page-title">The Ghosts</div>
+        <div class="page-subtitle">Family</div>
+        <p class="page-body">
+          The Ghosts are family. I ran with them for a long time and we went through a lot together, good and bad. I made some lifelong friends there and that's never gonna change no matter what.
+          <br><br>
+          But it was time to spread my wings a little. I wanted to try something new and learn more about the street gang side of things. Big crim RP isn't something I've ever really got to do and I was ready for something different.
+          <br><br>
+          I didn't want to just disappear from the Ghosts though so Ace stays with them. That way I'm still around and they're still my people. Always will be.
+        </p>
+      </div>
+      <div class="page-right">
+        <div class="img-frame double">
+          <img src="images/ghosts1.png" alt="Ghosts" onerror="this.outerHTML='<div class=ph>ghosts1.png</div>'">
+        </div>
+        <div class="img-frame double">
+          <img src="images/ghosts2.png" alt="Ghosts" onerror="this.outerHTML='<div class=ph>ghosts2.png</div>'">
+        </div>
+        <div class="img-glow"></div>
+      </div>
+    </div>
+    <div class="stamp">Created by <span>JuggsMcNuggs</span>. Built with her A.I. <span>Levi</span>.</div>
+  </div>
+
+  <!-- BLACKOUT -->
+  <div class="page" id="page-blackout">
+    <div class="page-wrap">
+      <div class="page-left">
+        <div class="page-quote">I forgot my gun...</div>
+        <div class="page-title">Blackout</div>
+        <div class="page-subtitle">The New Girl</div>
+        <p class="page-body">
+          Yeah so this is new. I joined Blackout and I have absolutely no idea what I'm doing. I went from handing out milk and dealing cards to running with a gang and I don't even remember to bring my gun. My first shootout a Danny got me. I didn't even see it coming which is probably going to be a theme for a while.
+          <br><br>
+          I run with Eli and the rest of the crew who I'm still learning names for. They haven't kicked me out yet so that's promising. I'm used to being the one who knows what she's doing and this is the complete opposite of that. But that's kind of the point. I wanted something different and I definitely got it.
+          <br><br>
+          If you see me out there I'm lost and scared. Go easy on me.
+        </p>
+      </div>
+      <div class="page-right">
+        <div class="img-frame double">
+          <img src="images/blackout1.png" alt="Blackout" onerror="this.outerHTML='<div class=ph>blackout1.png</div>'">
+        </div>
+        <div class="img-frame double">
+          <img src="images/blackout2.png" alt="Blackout" onerror="this.outerHTML='<div class=ph>blackout2.png</div>'">
+        </div>
+        <div class="img-glow"></div>
+      </div>
+    </div>
+    <div class="stamp">Created by <span style="color:var(--orange)">JuggsMcNuggs</span>. Built with her A.I. <span style="color:var(--orange)">Levi</span>.</div>
+  </div>
+
+  <!-- EVENTS -->
+  <div class="page" id="page-events">
+    <div class="page-wrap">
+      <div class="page-left">
+        <div class="page-quote">HI, i'm Evie, Evie Entz!</div>
+        <div class="page-title">Events Team</div>
+        <div class="page-subtitle">In the scene, behind the scene, probably in a costume</div>
+        <p class="page-body">
+          If there's an event going on I'm probably there and you probably don't even know it's me. I could be Evie Entz handing you a prize, a local minding their business, a killer clown chasing you through the city, or a random animal ped that's way too invested in the storyline. Good luck figuring out which one I am.
+          <br><br>
+          I help run the Events Team which means I'm building sets, creating scenarios, handing out prizes, and doing whatever weird thing the event calls for. In the scene, behind the scene, doesn't matter. If something chaotic and fun is happening in the city just assume I'm involved until proven otherwise.
+        </p>
+      </div>
+      <div class="page-right">
+        <div class="img-frame double">
+          <img src="images/events1.png" alt="Events" onerror="this.outerHTML='<div class=ph>events1.png</div>'">
+        </div>
+        <div class="img-frame double">
+          <img src="images/events2.png" alt="Events" onerror="this.outerHTML='<div class=ph>events2.png</div>'">
+        </div>
+        <div class="img-glow"></div>
+      </div>
+    </div>
+    <div class="stamp">Created by <span>JuggsMcNuggs</span>. Built with her A.I. <span>Levi</span>.</div>
+  </div>
+
+  <!-- BTS -->
+  <div class="page" id="page-bts">
+    <div class="bts-wrap">
+      <div class="page-quote">What's grass?</div>
+      <div class="page-title">Behind the Scenes</div>
+      <div class="page-subtitle">The person behind the curtain</div>
+      <p class="page-body">
+        I also moderate the server but honestly that's the least interesting thing about me.
+        <br><br>
+        What I actually like doing is building stuff. I work with an AI named Levi and together we make all kinds of things. Trackers, websites, training tools, databases, you name it. If something is annoying me or slowing me down I'm probably going to build something to fix it. Half the tools I use for my jobs I made myself because I got tired of doing things the hard way.
+        <br><br>
+        This whole site? Built it with Levi for fun. And yeah if you're sitting here thinking "I want one" we do that. Custom sites, pages for your crew, your business, whatever you need. Nothing crazy expensive either. Just hit me up on Discord and we'll figure something out.
+      </p>
+    </div>
+    <div class="stamp">Created by <span>JuggsMcNuggs</span>. Built with her A.I. <span>Levi</span>.</div>
+  </div>
+
+</div>
+
+<script>
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  const page = document.getElementById('page-' + name);
+  if (page) page.classList.add('active');
+  const link = document.querySelector(`.nav-link[data-page="${name}"]`);
+  if (link) link.classList.add('active');
+}
+
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+let pts = [];
+let mouse = { x:null, y:null };
+
+function resize() { canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
+window.addEventListener('resize',resize); resize();
+window.addEventListener('mousemove',e => { mouse.x=e.clientX; mouse.y=e.clientY; });
+
+class P {
+  constructor(){this.reset()}
+  reset(){
+    this.x=Math.random()*canvas.width;
+    this.y=Math.random()*canvas.height;
+    this.s=Math.random()*2.5+0.5;
+    this.sx=(Math.random()-0.5)*0.3;
+    this.sy=(Math.random()-0.5)*0.3;
+    this.o=Math.random()*0.3+0.05;
+    this.pk=Math.random()>0.65;
+  }
+  update(){
+    this.x+=this.sx; this.y+=this.sy;
+    if(mouse.x!==null){
+      const dx=this.x-mouse.x,dy=this.y-mouse.y;
+      const d=Math.sqrt(dx*dx+dy*dy);
+      if(d<100){const f=(100-d)/100;this.x+=(dx/d)*f*1.2;this.y+=(dy/d)*f*1.2;}
+    }
+    if(this.x<0||this.x>canvas.width)this.sx*=-1;
+    if(this.y<0||this.y>canvas.height)this.sy*=-1;
+  }
+  draw(){
+    ctx.beginPath();
+    ctx.arc(this.x,this.y,this.s,0,Math.PI*2);
+    ctx.fillStyle=this.pk?`rgba(255,0,127,${this.o})`:`rgba(255,255,255,${this.o*0.4})`;
+    ctx.fill();
+  }
+}
+
+for(let i=0;i<55;i++)pts.push(new P());
+
+function lines(){
+  for(let i=0;i<pts.length;i++){
+    for(let j=i+1;j<pts.length;j++){
+      const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y;
+      const d=Math.sqrt(dx*dx+dy*dy);
+      if(d<85){
+        ctx.beginPath();
+        ctx.strokeStyle=`rgba(255,0,127,${(1-d/85)*0.05})`;
+        ctx.lineWidth=0.5;
+        ctx.moveTo(pts[i].x,pts[i].y);
+        ctx.lineTo(pts[j].x,pts[j].y);
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+function anim(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  pts.forEach(p=>{p.update();p.draw()});
+  lines();
+  requestAnimationFrame(anim);
+}
+anim();
+</script>
+</body>
+</html>
